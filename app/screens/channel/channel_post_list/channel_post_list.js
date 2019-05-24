@@ -3,11 +3,7 @@
 
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {
-    Platform,
-    StyleSheet,
-    View,
-} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import {getLastPostIndex} from 'mattermost-redux/utils/post_list';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
@@ -99,7 +95,7 @@ export default class ChannelPostList extends PureComponent {
     goToThread = (post) => {
         telemetry.start(['post_list:thread']);
         const {actions, channelId, navigator, theme} = this.props;
-        const rootId = (post.root_id || post.id);
+        const rootId = post.root_id || post.id;
 
         actions.loadThreadIfNecessary(rootId);
         actions.selectPost(rootId);
@@ -131,12 +127,11 @@ export default class ChannelPostList extends PureComponent {
         const {actions, channelId} = this.props;
         if (!this.isLoadingMoreTop) {
             this.isLoadingMoreTop = true;
-            actions.increasePostVisibility(
-                channelId,
-                this.state.visiblePostIds[this.state.visiblePostIds.length - 1]
-            ).then((hasMore) => {
-                this.isLoadingMoreTop = !hasMore;
-            });
+            actions.
+                increasePostVisibility(channelId, this.state.visiblePostIds[this.state.visiblePostIds.length - 1]).
+                then((hasMore) => {
+                    this.isLoadingMoreTop = !hasMore;
+                });
         }
     };
 
@@ -168,12 +163,10 @@ export default class ChannelPostList extends PureComponent {
             ChannelIntro = require('app/components/channel_intro').default;
         }
 
-        return (
-            <ChannelIntro
-                channelId={this.props.channelId}
-                navigator={this.props.navigator}
-            />
-        );
+        return (<ChannelIntro
+            channelId={this.props.channelId}
+            navigator={this.props.navigator}
+                />);
     };
 
     render() {
@@ -193,17 +186,20 @@ export default class ChannelPostList extends PureComponent {
         let component;
 
         if (visiblePostIds.length === 0 && channelRefreshingFailed) {
-            component = (
-                <PostListRetry
-                    retry={this.loadPostsRetry}
-                    theme={theme}
-                />
-            );
+            component = (<PostListRetry
+                retry={this.loadPostsRetry}
+                theme={theme}
+                         />);
         } else {
+            let lastIndex = -1;
+            if (Platform.OS === 'android') {
+                lastIndex = getLastPostIndex(visiblePostIds);
+            }
+
             component = (
                 <PostList
                     postIds={visiblePostIds}
-                    lastPostIndex={Platform.OS === 'android' ? getLastPostIndex(visiblePostIds) : -1}
+                    lastPostIndex={lastIndex}
                     extraData={loadMorePostsVisible}
                     onLoadMoreUp={this.loadMorePostsTop}
                     onPostPress={this.goToThread}
