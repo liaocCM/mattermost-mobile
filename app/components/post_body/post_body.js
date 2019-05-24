@@ -363,6 +363,7 @@ export default class PostBody extends PureComponent {
             shouldRenderJumboEmoji,
             showLongPost,
             theme,
+            otherMessage,
         } = this.props;
         const {isLongPost, maxHeight} = this.state;
         const style = getStyleSheet(theme);
@@ -426,6 +427,7 @@ export default class PostBody extends PureComponent {
                         onPostPress={onPress}
                         textStyles={textStyles}
                         value={message}
+                        otherMessage={otherMessage}
                     />
                 </View>
             );

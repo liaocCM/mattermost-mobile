@@ -1,38 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import {
     Platform,
     TouchableHighlight,
     View,
-    ViewPropTypes,
-} from 'react-native';
-import {intlShape} from 'react-intl';
+    ViewPropTypes
+} from "react-native";
+import { intlShape } from "react-intl";
 
-import PostBody from 'app/components/post_body';
-import PostHeader from 'app/components/post_header';
-import PostPreHeader from 'app/components/post_header/post_pre_header';
-import PostProfilePicture from 'app/components/post_profile_picture';
-import {NavigationTypes} from 'app/constants';
-import {fromAutoResponder} from 'app/utils/general';
-import {preventDoubleTap} from 'app/utils/tap';
-import {changeOpacity, makeStyleSheetFromTheme} from 'app/utils/theme';
-import {t} from 'app/utils/i18n';
+import PostBody from "app/components/post_body";
+import PostHeader from "app/components/post_header";
+import PostPreHeader from "app/components/post_header/post_pre_header";
+import PostProfilePicture from "app/components/post_profile_picture";
+import { NavigationTypes } from "app/constants";
+import { fromAutoResponder } from "app/utils/general";
+import { preventDoubleTap } from "app/utils/tap";
+import { changeOpacity, makeStyleSheetFromTheme } from "app/utils/theme";
+import { t } from "app/utils/i18n";
 
-import {Posts} from 'mattermost-redux/constants';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
-import {isPostEphemeral, isPostPendingOrFailed, isSystemMessage} from 'mattermost-redux/utils/post_utils';
+import { Posts } from "mattermost-redux/constants";
+import EventEmitter from "mattermost-redux/utils/event_emitter";
+import {
+    isPostEphemeral,
+    isPostPendingOrFailed,
+    isSystemMessage
+} from "mattermost-redux/utils/post_utils";
 
-import Config from 'assets/config';
+import Config from "assets/config";
 
 export default class Post extends PureComponent {
     static propTypes = {
         actions: PropTypes.shape({
             createPost: PropTypes.func.isRequired,
             insertToDraft: PropTypes.func.isRequired,
-            removePost: PropTypes.func.isRequired,
+            removePost: PropTypes.func.isRequired
         }).isRequired,
         channelIsReadOnly: PropTypes.bool,
         currentUserId: PropTypes.string.isRequired,
@@ -64,7 +68,7 @@ export default class Post extends PureComponent {
         skipPinnedHeader: PropTypes.bool,
         isCommentMention: PropTypes.bool,
         location: PropTypes.string,
-        isBot: PropTypes.bool,
+        isBot: PropTypes.bool
     };
 
     static defaultProps = {
@@ -72,11 +76,11 @@ export default class Post extends PureComponent {
         showAddReaction: true,
         showLongPost: false,
         channelIsReadOnly: false,
-        highlightPinnedOrFlagged: true,
+        highlightPinnedOrFlagged: true
     };
 
     static contextTypes = {
-        intl: intlShape.isRequired,
+        intl: intlShape.isRequired
     };
 
     constructor(props) {
@@ -86,102 +90,117 @@ export default class Post extends PureComponent {
     }
 
     goToUserProfile = () => {
-        const {intl} = this.context;
-        const {navigator, post, theme} = this.props;
+        const { intl } = this.context;
+        const { navigator, post, theme } = this.props;
         const options = {
-            screen: 'UserProfile',
-            title: intl.formatMessage({id: 'mobile.routes.user_profile', defaultMessage: 'Profile'}),
+            screen: "UserProfile",
+            title: intl.formatMessage({
+                id: "mobile.routes.user_profile",
+                defaultMessage: "Profile"
+            }),
             animated: true,
-            backButtonTitle: '',
+            backButtonTitle: "",
             passProps: {
-                userId: post.user_id,
+                userId: post.user_id
             },
             navigatorStyle: {
                 navBarTextColor: theme.sidebarHeaderTextColor,
                 navBarBackgroundColor: theme.sidebarHeaderBg,
                 navBarButtonColor: theme.sidebarHeaderTextColor,
-                screenBackgroundColor: theme.centerChannelBg,
-            },
+                screenBackgroundColor: theme.centerChannelBg
+            }
         };
 
-        if (Platform.OS === 'ios') {
+        if (Platform.OS === "ios") {
             navigator.push(options);
         } else {
             navigator.showModal(options);
         }
     };
 
-    autofillUserMention = (username) => {
+    autofillUserMention = username => {
         this.props.actions.insertToDraft(`@${username} `);
     };
 
     handleFailedPostPress = () => {
         const options = {
             title: {
-                id: t('mobile.post.failed_title'),
-                defaultMessage: 'Unable to send your message:',
+                id: t("mobile.post.failed_title"),
+                defaultMessage: "Unable to send your message:"
             },
-            items: [{
-                action: () => {
-                    const {failed, id, ...post} = this.props.post; // eslint-disable-line
+            items: [
+                {
+                    action: () => {
+                        const { failed, id, ...post } = this.props.post; // eslint-disable-line
 
-                    EventEmitter.emit(NavigationTypes.NAVIGATION_CLOSE_MODAL);
-                    this.props.actions.createPost(post);
+                        EventEmitter.emit(
+                            NavigationTypes.NAVIGATION_CLOSE_MODAL
+                        );
+                        this.props.actions.createPost(post);
+                    },
+                    text: {
+                        id: t("mobile.post.failed_retry"),
+                        defaultMessage: "Try Again"
+                    }
                 },
-                text: {
-                    id: t('mobile.post.failed_retry'),
-                    defaultMessage: 'Try Again',
-                },
-            }, {
-                action: () => {
-                    EventEmitter.emit(NavigationTypes.NAVIGATION_CLOSE_MODAL);
-                    this.onRemovePost(this.props.post);
-                },
-                text: {
-                    id: t('mobile.post.failed_delete'),
-                    defaultMessage: 'Delete Message',
-                },
-                textStyle: {
-                    color: '#CC3239',
-                },
-            }],
+                {
+                    action: () => {
+                        EventEmitter.emit(
+                            NavigationTypes.NAVIGATION_CLOSE_MODAL
+                        );
+                        this.onRemovePost(this.props.post);
+                    },
+                    text: {
+                        id: t("mobile.post.failed_delete"),
+                        defaultMessage: "Delete Message"
+                    },
+                    textStyle: {
+                        color: "#CC3239"
+                    }
+                }
+            ]
         };
 
         this.props.navigator.showModal({
-            screen: 'OptionsModal',
-            title: '',
-            animationType: 'none',
+            screen: "OptionsModal",
+            title: "",
+            animationType: "none",
             passProps: {
                 items: options.items,
-                title: options.title,
+                title: options.title
             },
             navigatorStyle: {
                 navBarHidden: true,
                 statusBarHidden: false,
                 statusBarHideWithNavBar: false,
-                screenBackgroundColor: 'transparent',
-                modalPresentationStyle: 'overCurrentContext',
-            },
+                screenBackgroundColor: "transparent",
+                modalPresentationStyle: "overCurrentContext"
+            }
         });
     };
 
     handlePress = preventDoubleTap(() => {
-        const {
-            onPress,
-            post,
-            showLongPost,
-        } = this.props;
+        const { onPress, post, showLongPost } = this.props;
 
-        const isValidSystemMessage = fromAutoResponder(post) || !isSystemMessage(post);
-        if (onPress && post.state !== Posts.POST_DELETED && isValidSystemMessage && !isPostPendingOrFailed(post)) {
+        const isValidSystemMessage =
+            fromAutoResponder(post) || !isSystemMessage(post);
+        if (
+            onPress &&
+            post.state !== Posts.POST_DELETED &&
+            isValidSystemMessage &&
+            !isPostPendingOrFailed(post)
+        ) {
             onPress(post);
-        } else if ((isPostEphemeral(post) || post.state === Posts.POST_DELETED) && !showLongPost) {
+        } else if (
+            (isPostEphemeral(post) || post.state === Posts.POST_DELETED) &&
+            !showLongPost
+        ) {
             this.onRemovePost(post);
         }
     });
 
     handleReply = preventDoubleTap(() => {
-        const {post, onReply} = this.props;
+        const { post, onReply } = this.props;
         if (onReply) {
             return onReply(post);
         }
@@ -189,14 +208,18 @@ export default class Post extends PureComponent {
         return this.handlePress();
     });
 
-    onRemovePost = (post) => {
-        const {removePost} = this.props.actions;
+    onRemovePost = post => {
+        const { removePost } = this.props.actions;
         removePost(post);
     };
 
     isReplyPost = () => {
-        const {renderReplies, post} = this.props;
-        return Boolean(renderReplies && post.root_id && (!isPostEphemeral(post) || post.state === Posts.POST_DELETED));
+        const { renderReplies, post } = this.props;
+        return Boolean(
+            renderReplies &&
+                post.root_id &&
+                (!isPostEphemeral(post) || post.state === Posts.POST_DELETED)
+        );
     };
 
     replyBarStyle = () => {
@@ -205,7 +228,7 @@ export default class Post extends PureComponent {
             isFirstReply,
             isLastReply,
             theme,
-            isCommentMention,
+            isCommentMention
         } = this.props;
 
         if (!this.isReplyPost()) {
@@ -242,6 +265,7 @@ export default class Post extends PureComponent {
 
     render() {
         const {
+            currentUserId,
             channelIsReadOnly,
             commentedOnPost,
             highlight,
@@ -265,17 +289,25 @@ export default class Post extends PureComponent {
             highlightPinnedOrFlagged,
             skipFlaggedHeader,
             skipPinnedHeader,
-            location,
+            location
         } = this.props;
 
         if (!post) {
             return null;
         }
+        let otherMessage = true;
+
+        if (post.user_id === currentUserId) {
+            otherMessage = false;
+            console.log("admin say : ", post.message);
+        }
 
         const style = getStyleSheet(theme);
         const isReplyPost = this.isReplyPost();
         const onUsernamePress =
-            Config.ExperimentalUsernamePressIsMention && !channelIsReadOnly ? this.autofillUserMention : this.viewUserProfile;
+            Config.ExperimentalUsernamePressIsMention && !channelIsReadOnly
+                ? this.autofillUserMention
+                : this.viewUserProfile;
         const mergeMessage = consecutivePost && !hasComments && !isBot;
         const highlightFlagged = isFlagged && !skipFlaggedHeader;
         const hightlightPinned = post.is_pinned && !skipPinnedHeader;
@@ -283,7 +315,10 @@ export default class Post extends PureComponent {
         let highlighted;
         if (highlight) {
             highlighted = style.highlight;
-        } else if ((highlightFlagged || hightlightPinned) && highlightPinnedOrFlagged) {
+        } else if (
+            (highlightFlagged || hightlightPinned) &&
+            highlightPinnedOrFlagged
+        ) {
             highlighted = style.highlightPinnedOrFlagged;
         }
 
@@ -292,11 +327,16 @@ export default class Post extends PureComponent {
         let consecutiveStyle;
 
         if (mergeMessage) {
-            consecutiveStyle = {marginTop: 0};
-            userProfile = <View style={style.consecutivePostContainer}/>;
+            consecutiveStyle = { marginTop: 0 };
+            userProfile = <View style={style.consecutivePostContainer} />;
         } else {
             userProfile = (
-                <View style={[style.profilePictureContainer, (isPostPendingOrFailed(post) && style.pendingPost)]}>
+                <View
+                    style={[
+                        style.profilePictureContainer,
+                        isPostPendingOrFailed(post) && style.pendingPost
+                    ]}
+                >
                     <PostProfilePicture
                         onViewUserProfile={this.viewUserProfile}
                         post={post}
@@ -306,7 +346,9 @@ export default class Post extends PureComponent {
             postHeader = (
                 <PostHeader
                     post={post}
-                    commentedOnUserId={commentedOnPost && commentedOnPost.user_id}
+                    commentedOnUserId={
+                        commentedOnPost && commentedOnPost.user_id
+                    }
                     createAt={post.create_at}
                     isSearchResult={isSearchResult}
                     shouldRenderReplyButton={shouldRenderReplyButton}
@@ -315,11 +357,15 @@ export default class Post extends PureComponent {
                     onUsernamePress={onUsernamePress}
                     renderReplies={renderReplies}
                     theme={theme}
+                    otherMessage={otherMessage}
                 />
             );
         }
         const replyBarStyle = this.replyBarStyle();
-        const rightColumnStyle = [style.rightColumn, (commentedOnPost && isLastReply && style.rightColumnPadding)];
+        const rightColumnStyle = [
+            style.rightColumn,
+            commentedOnPost && isLastReply && style.rightColumnPadding
+        ];
 
         return (
             <TouchableHighlight
@@ -338,7 +384,13 @@ export default class Post extends PureComponent {
                         skipPinnedHeader={skipPinnedHeader}
                         theme={theme}
                     />
-                    <View style={[style.container, this.props.style, consecutiveStyle]}>
+                    <View
+                        style={[
+                            otherMessage ? style.container : style.reverse_container,
+                            this.props.style,
+                            consecutiveStyle
+                        ]}
+                    >
                         {userProfile}
                         <View style={rightColumnStyle}>
                             {postHeader}
@@ -361,6 +413,7 @@ export default class Post extends PureComponent {
                                 showAddReaction={showAddReaction}
                                 showLongPost={showLongPost}
                                 location={location}
+                                otherMessage={otherMessage}
                             />
                         </View>
                     </View>
@@ -370,68 +423,71 @@ export default class Post extends PureComponent {
     }
 }
 
-const getStyleSheet = makeStyleSheetFromTheme((theme) => {
+const getStyleSheet = makeStyleSheetFromTheme(theme => {
     return {
         postStyle: {
-            overflow: 'hidden',
+            overflow: "hidden"
+        },
+        reverse_container: {
+            flexDirection: "row-reverse"
         },
         container: {
-            flexDirection: 'row',
+            flexDirection: "row"
         },
         pendingPost: {
-            opacity: 0.5,
+            opacity: 0.5
         },
         rightColumn: {
             flex: 1,
-            flexDirection: 'column',
-            marginRight: 12,
+            flexDirection: "column",
+            marginRight: 12
         },
         rightColumnPadding: {
-            paddingBottom: 3,
+            paddingBottom: 3
         },
         consecutivePostContainer: {
             marginBottom: 10,
             marginRight: 10,
             marginLeft: 47,
-            marginTop: 10,
+            marginTop: 10
         },
         profilePictureContainer: {
             marginBottom: 5,
-            marginLeft: 12,
+            marginLeft: 10,
             marginTop: 10,
 
             // to compensate STATUS_BUFFER in profile_picture component
             ...Platform.select({
                 android: {
-                    marginRight: 11,
+                    marginRight: 11
                 },
                 ios: {
-                    marginRight: 10,
-                },
-            }),
+                    marginRight: 10
+                }
+            })
         },
         replyBar: {
             backgroundColor: theme.centerChannelColor,
             opacity: 0.1,
             marginRight: 7,
             width: 3,
-            flexBasis: 3,
+            flexBasis: 3
         },
         replyBarFirst: {
-            paddingTop: 10,
+            paddingTop: 10
         },
         replyBarLast: {
-            paddingBottom: 10,
+            paddingBottom: 10
         },
         commentMentionBgColor: {
             backgroundColor: theme.mentionHighlightBg,
-            opacity: 1,
+            opacity: 1
         },
         highlight: {
-            backgroundColor: changeOpacity(theme.mentionHighlightBg, 0.5),
+            backgroundColor: changeOpacity(theme.mentionHighlightBg, 0.5)
         },
         highlightPinnedOrFlagged: {
-            backgroundColor: changeOpacity(theme.mentionHighlightBg, 0.2),
-        },
+            backgroundColor: changeOpacity(theme.mentionHighlightBg, 0.2)
+        }
     };
 });

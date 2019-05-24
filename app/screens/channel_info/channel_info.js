@@ -431,7 +431,7 @@ export default class ChannelInfo extends PureComponent {
                     togglable={true}
                     theme={theme}
                 />
-                <View style={style.separator}/>
+                {/* <View style={style.separator}/>
                 <ChannelInfoRow
                     action={this.handleIgnoreChannelMentions}
                     defaultMessage='Ignore @channel, @here, @all'
@@ -440,7 +440,7 @@ export default class ChannelInfo extends PureComponent {
                     textId={t('channel_notifications.ignoreChannelMentions.settings')}
                     togglable={true}
                     theme={theme}
-                />
+                /> */}
                 <View style={style.separator}/>
                 <ChannelInfoRow
                     action={this.goToPinnedPosts}

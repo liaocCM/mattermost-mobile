@@ -1,41 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Parser, Node} from 'commonmark';
-import Renderer from 'commonmark-react-renderer';
-import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
+import { Parser, Node } from "commonmark";
+import Renderer from "commonmark-react-renderer";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
+import { Platform, Text, View } from "react-native";
+
+import AtMention from "app/components/at_mention";
+import ChannelLink from "app/components/channel_link";
+import Emoji from "app/components/emoji";
+import FormattedText from "app/components/formatted_text";
+import Hashtag from "app/components/markdown/hashtag";
+import CustomPropTypes from "app/constants/custom_prop_types";
 import {
-    Platform,
-    Text,
-    View,
-} from 'react-native';
+    blendColors,
+    concatStyles,
+    makeStyleSheetFromTheme
+} from "app/utils/theme";
+import { getScheme } from "app/utils/url";
 
-import AtMention from 'app/components/at_mention';
-import ChannelLink from 'app/components/channel_link';
-import Emoji from 'app/components/emoji';
-import FormattedText from 'app/components/formatted_text';
-import Hashtag from 'app/components/markdown/hashtag';
-import CustomPropTypes from 'app/constants/custom_prop_types';
-import {blendColors, concatStyles, makeStyleSheetFromTheme} from 'app/utils/theme';
-import {getScheme} from 'app/utils/url';
-
-import MarkdownBlockQuote from './markdown_block_quote';
-import MarkdownCodeBlock from './markdown_code_block';
-import MarkdownImage from './markdown_image';
-import MarkdownLink from './markdown_link';
-import MarkdownList from './markdown_list';
-import MarkdownListItem from './markdown_list_item';
-import MarkdownTable from './markdown_table';
-import MarkdownTableImage from './markdown_table_image';
-import MarkdownTableRow from './markdown_table_row';
-import MarkdownTableCell from './markdown_table_cell';
+import MarkdownBlockQuote from "./markdown_block_quote";
+import MarkdownCodeBlock from "./markdown_code_block";
+import MarkdownImage from "./markdown_image";
+import MarkdownLink from "./markdown_link";
+import MarkdownList from "./markdown_list";
+import MarkdownListItem from "./markdown_list_item";
+import MarkdownTable from "./markdown_table";
+import MarkdownTableImage from "./markdown_table_image";
+import MarkdownTableRow from "./markdown_table_row";
+import MarkdownTableCell from "./markdown_table_cell";
 import {
     addListItemIndices,
     combineTextNodes,
     highlightMentions,
-    pullOutImages,
-} from './transform';
+    pullOutImages
+} from "./transform";
 
 export default class Markdown extends PureComponent {
     static propTypes = {
@@ -59,7 +59,7 @@ export default class Markdown extends PureComponent {
         value: PropTypes.string.isRequired,
         disableHashtags: PropTypes.bool,
         disableAtMentions: PropTypes.bool,
-        disableChannelLink: PropTypes.bool,
+        disableChannelLink: PropTypes.bool
     };
 
     static defaultProps = {
@@ -68,7 +68,7 @@ export default class Markdown extends PureComponent {
         onLongPress: () => true,
         disableHashtags: false,
         disableAtMentions: false,
-        disableChannelLink: false,
+        disableChannelLink: false
     };
 
     constructor(props) {
@@ -81,14 +81,16 @@ export default class Markdown extends PureComponent {
     createParser = () => {
         return new Parser({
             urlFilter: this.urlFilter,
-            minimumHashtagLength: this.props.minimumHashtagLength,
+            minimumHashtagLength: this.props.minimumHashtagLength
         });
     };
 
-    urlFilter = (url) => {
+    urlFilter = url => {
         const scheme = getScheme(url);
 
-        return !scheme || this.props.autolinkedUrlSchemes.indexOf(scheme) !== -1;
+        return (
+            !scheme || this.props.autolinkedUrlSchemes.indexOf(scheme) !== -1
+        );
     };
 
     createRenderer = () => {
@@ -128,20 +130,20 @@ export default class Markdown extends PureComponent {
 
                 mention_highlight: Renderer.forwardChildren,
 
-                editedIndicator: this.renderEditedIndicator,
+                editedIndicator: this.renderEditedIndicator
             },
             renderParagraphsInLists: true,
-            getExtraPropsForNode: this.getExtraPropsForNode,
+            getExtraPropsForNode: this.getExtraPropsForNode
         });
     };
 
-    getExtraPropsForNode = (node) => {
+    getExtraPropsForNode = node => {
         const extraProps = {
             continue: node.continue,
-            index: node.index,
+            index: node.index
         };
 
-        if (node.type === 'image') {
+        if (node.type === "image") {
             extraProps.reactChildren = node.react.children;
             extraProps.linkDestination = node.linkDestination;
         }
@@ -150,11 +152,14 @@ export default class Markdown extends PureComponent {
     };
 
     computeTextStyle = (baseStyle, context) => {
-        return concatStyles(baseStyle, context.map((type) => this.props.textStyles[type]));
+        return concatStyles(
+            baseStyle,
+            context.map(type => this.props.textStyles[type])
+        );
     };
 
-    renderText = ({context, literal}) => {
-        if (context.indexOf('image') !== -1) {
+    renderText = ({ context, literal }) => {
+        if (context.indexOf("image") !== -1) {
             // If this text is displayed, it will be styled by the image component
             return <Text>{literal}</Text>;
         }
@@ -165,17 +170,32 @@ export default class Markdown extends PureComponent {
         return <Text style={style}>{literal}</Text>;
     };
 
-    renderCodeSpan = ({context, literal}) => {
-        return <Text style={this.computeTextStyle([this.props.baseTextStyle, this.props.textStyles.code], context)}>{literal}</Text>;
+    renderCodeSpan = ({ context, literal }) => {
+        return (
+            <Text
+                style={this.computeTextStyle(
+                    [this.props.baseTextStyle, this.props.textStyles.code],
+                    context
+                )}
+            >
+                {literal}
+            </Text>
+        );
     };
 
-    renderImage = ({linkDestination, reactChildren, context, src}) => {
-        if (context.indexOf('table') !== -1) {
+    renderImage = ({ linkDestination, reactChildren, context, src }) => {
+        if (context.indexOf("table") !== -1) {
             // We have enough problems rendering images as is, so just render a link inside of a table
             return (
                 <MarkdownTableImage
                     source={src}
-                    textStyle={[this.computeTextStyle(this.props.baseTextStyle, context), this.props.textStyles.link]}
+                    textStyle={[
+                        this.computeTextStyle(
+                            this.props.baseTextStyle,
+                            context
+                        ),
+                        this.props.textStyles.link
+                    ]}
                     navigator={this.props.navigator}
                 >
                     {reactChildren}
@@ -190,22 +210,28 @@ export default class Markdown extends PureComponent {
                 isReplyPost={this.props.isReplyPost}
                 navigator={this.props.navigator}
                 source={src}
-                errorTextStyle={[this.computeTextStyle(this.props.baseTextStyle, context), this.props.textStyles.error]}
+                errorTextStyle={[
+                    this.computeTextStyle(this.props.baseTextStyle, context),
+                    this.props.textStyles.error
+                ]}
             >
                 {reactChildren}
             </MarkdownImage>
         );
     };
 
-    renderAtMention = ({context, mentionName}) => {
+    renderAtMention = ({ context, mentionName }) => {
         if (this.props.disableAtMentions) {
-            return this.renderText({context, literal: `@${mentionName}`});
+            return this.renderText({ context, literal: `@${mentionName}` });
         }
 
         return (
             <AtMention
                 mentionStyle={this.props.textStyles.mention}
-                textStyle={this.computeTextStyle(this.props.baseTextStyle, context)}
+                textStyle={this.computeTextStyle(
+                    this.props.baseTextStyle,
+                    context
+                )}
                 isSearchResult={this.props.isSearchResult}
                 mentionName={mentionName}
                 onPostPress={this.props.onPostPress}
@@ -214,15 +240,18 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderChannelLink = ({context, channelName}) => {
+    renderChannelLink = ({ context, channelName }) => {
         if (this.props.disableChannelLink) {
-            return this.renderText({context, literal: `~${channelName}`});
+            return this.renderText({ context, literal: `~${channelName}` });
         }
 
         return (
             <ChannelLink
                 linkStyle={this.props.textStyles.link}
-                textStyle={this.computeTextStyle(this.props.baseTextStyle, context)}
+                textStyle={this.computeTextStyle(
+                    this.props.baseTextStyle,
+                    context
+                )}
                 onChannelLinkPress={this.props.onChannelLinkPress}
                 channelName={channelName}
                 channelMentions={this.props.channelMentions}
@@ -230,19 +259,22 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderEmoji = ({context, emojiName, literal}) => {
+    renderEmoji = ({ context, emojiName, literal }) => {
         return (
             <Emoji
                 emojiName={emojiName}
                 literal={literal}
-                textStyle={this.computeTextStyle(this.props.baseTextStyle, context)}
+                textStyle={this.computeTextStyle(
+                    this.props.baseTextStyle,
+                    context
+                )}
             />
         );
     };
 
-    renderHashtag = ({context, hashtag}) => {
+    renderHashtag = ({ context, hashtag }) => {
         if (this.props.disableHashtags) {
-            return this.renderText({context, literal: `#${hashtag}`});
+            return this.renderText({ context, literal: `#${hashtag}` });
         }
 
         return (
@@ -255,43 +287,46 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderParagraph = ({children, first}) => {
+    renderParagraph = ({ children, first }) => {
         if (!children || children.length === 0) {
             return null;
         }
 
         const style = getStyleSheet(this.props.theme);
-        const blockStyle = [style.block];
+        const blockStyle = this.props.otherMessage
+            ? [style.block]
+            : [style.block, { justifyContent: "flex-end" }];
         if (!first) {
             blockStyle.push(this.props.blockStyles.adjacentParagraph);
         }
         return (
             <View style={blockStyle}>
-                <Text>
-                    {children}
-                </Text>
+                <Text>{children}</Text>
             </View>
         );
     };
 
-    renderHeading = ({children, level}) => {
+    renderHeading = ({ children, level }) => {
         const containerStyle = [
-            getStyleSheet(this.props.theme).block,
-            this.props.blockStyles[`heading${level}`],
+            {
+                ...getStyleSheet(this.props.theme).block,
+                justifyContent: this.props.otherMessage
+                    ? "flex-start"
+                    : "flex-end"
+            },
+            this.props.blockStyles[`heading${level}`]
         ];
         const textStyle = this.props.blockStyles[`heading${level}Text`];
         return (
             <View style={containerStyle}>
-                <Text style={textStyle}>
-                    {children}
-                </Text>
+                <Text style={textStyle}>{children}</Text>
             </View>
         );
     };
 
-    renderCodeBlock = (props) => {
+    renderCodeBlock = props => {
         // These sometimes include a trailing newline
-        const content = props.literal.replace(/\n$/, '');
+        const content = props.literal.replace(/\n$/, "");
 
         return (
             <MarkdownCodeBlock
@@ -303,7 +338,7 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderBlockQuote = ({children, ...otherProps}) => {
+    renderBlockQuote = ({ children, ...otherProps }) => {
         return (
             <MarkdownBlockQuote
                 iconStyle={this.props.blockStyles.quoteBlockIcon}
@@ -314,10 +349,10 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderList = ({children, start, tight, type}) => {
+    renderList = ({ children, start, tight, type }) => {
         return (
             <MarkdownList
-                ordered={type !== 'bullet'}
+                ordered={type !== "bullet"}
                 start={start}
                 tight={tight}
             >
@@ -326,8 +361,8 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderListItem = ({children, context, ...otherProps}) => {
-        const level = context.filter((type) => type === 'list').length;
+    renderListItem = ({ children, context, ...otherProps }) => {
+        const level = context.filter(type => type === "list").length;
 
         return (
             <MarkdownListItem
@@ -341,25 +376,32 @@ export default class Markdown extends PureComponent {
     };
 
     renderHardBreak = () => {
-        return <Text>{'\n'}</Text>;
+        return <Text>{"\n"}</Text>;
     };
 
     renderThematicBreak = () => {
-        return <View style={this.props.blockStyles.horizontalRule}/>;
+        return <View style={this.props.blockStyles.horizontalRule} />;
     };
 
     renderSoftBreak = () => {
-        return <Text>{'\n'}</Text>;
+        return <Text>{"\n"}</Text>;
     };
 
-    renderHtml = (props) => {
+    renderHtml = props => {
         let rendered = this.renderText(props);
 
         if (props.isBlock) {
             const style = getStyleSheet(this.props.theme);
 
             rendered = (
-                <View style={style.block}>
+                <View
+                    style={{
+                        ...style.block,
+                        justifyContent: this.props.otherMessage
+                            ? "flex-start"
+                            : "flex-end"
+                    }}
+                >
                     {rendered}
                 </View>
             );
@@ -368,7 +410,7 @@ export default class Markdown extends PureComponent {
         return rendered;
     };
 
-    renderTable = ({children, numColumns}) => {
+    renderTable = ({ children, numColumns }) => {
         return (
             <MarkdownTable
                 navigator={this.props.navigator}
@@ -379,15 +421,15 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderTableRow = (args) => {
-        return <MarkdownTableRow {...args}/>;
+    renderTableRow = args => {
+        return <MarkdownTableRow {...args} />;
     };
 
-    renderTableCell = (args) => {
-        return <MarkdownTableCell {...args}/>;
+    renderTableCell = args => {
+        return <MarkdownTableCell {...args} />;
     };
 
-    renderLink = ({children, href}) => {
+    renderLink = ({ children, href }) => {
         return (
             <MarkdownLink
                 href={href}
@@ -398,26 +440,21 @@ export default class Markdown extends PureComponent {
         );
     };
 
-    renderEditedIndicator = ({context}) => {
-        let spacer = '';
-        if (context[0] === 'paragraph') {
-            spacer = ' ';
+    renderEditedIndicator = ({ context }) => {
+        let spacer = "";
+        if (context[0] === "paragraph") {
+            spacer = " ";
         }
 
         const style = getStyleSheet(this.props.theme);
-        const styles = [
-            this.props.baseTextStyle,
-            style.editedIndicatorText,
-        ];
+        const styles = [this.props.baseTextStyle, style.editedIndicatorText];
 
         return (
-            <Text
-                style={styles}
-            >
+            <Text style={styles}>
                 {spacer}
                 <FormattedText
-                    id='post_message_view.edited'
-                    defaultMessage='(edited)'
+                    id="post_message_view.edited"
+                    defaultMessage="(edited)"
                 />
             </Text>
         );
@@ -432,11 +469,14 @@ export default class Markdown extends PureComponent {
         ast = highlightMentions(ast, this.props.mentionKeys);
 
         if (this.props.isEdited) {
-            const editIndicatorNode = new Node('edited_indicator');
-            if (ast.lastChild && ['heading', 'paragraph'].includes(ast.lastChild.type)) {
+            const editIndicatorNode = new Node("edited_indicator");
+            if (
+                ast.lastChild &&
+                ["heading", "paragraph"].includes(ast.lastChild.type)
+            ) {
                 ast.lastChild.appendChild(editIndicatorNode);
             } else {
-                const node = new Node('paragraph');
+                const node = new Node("paragraph");
                 node.appendChild(editIndicatorNode);
 
                 ast.appendChild(node);
@@ -447,27 +487,31 @@ export default class Markdown extends PureComponent {
     }
 }
 
-const getStyleSheet = makeStyleSheetFromTheme((theme) => {
+const getStyleSheet = makeStyleSheetFromTheme(theme => {
     // Android has trouble giving text transparency depending on how it's nested,
     // so we calculate the resulting colour manually
     const editedOpacity = Platform.select({
         ios: 0.3,
-        android: 1.0,
+        android: 1.0
     });
     const editedColor = Platform.select({
         ios: theme.centerChannelColor,
-        android: blendColors(theme.centerChannelBg, theme.centerChannelColor, 0.3),
+        android: blendColors(
+            theme.centerChannelBg,
+            theme.centerChannelColor,
+            0.3
+        )
     });
 
     return {
         block: {
-            alignItems: 'flex-start',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
+            alignItems: "flex-start",
+            flexDirection: "row",
+            flexWrap: "wrap"
         },
         editedIndicatorText: {
             color: editedColor,
-            opacity: editedOpacity,
-        },
+            opacity: editedOpacity
+        }
     };
 });
