@@ -3,13 +3,14 @@
 
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList, StyleSheet} from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import CombinedUserActivityPost from 'app/components/combined_user_activity_post';
 import Post from 'app/components/post';
+import Watermark from 'app/components/watermark';
 import {DeepLinkTypes, ListTypes} from 'app/constants';
 import mattermostManaged from 'app/mattermost_managed';
 import {makeExtraData} from 'app/utils/list_view';
@@ -158,11 +159,7 @@ export default class PostList extends PureComponent {
     };
 
     handleRefresh = () => {
-        const {
-            actions,
-            channelId,
-            onRefresh,
-        } = this.props;
+        const {actions, channelId, onRefresh} = this.props;
 
         if (channelId) {
             actions.refreshChannelWithRetry(channelId);
@@ -177,14 +174,13 @@ export default class PostList extends PureComponent {
         const pageOffsetY = event.nativeEvent.contentOffset.y;
         if (pageOffsetY > 0) {
             const contentHeight = event.nativeEvent.contentSize.height;
-            const direction = (this.contentOffsetY < pageOffsetY) ?
-                ListTypes.VISIBILITY_SCROLL_UP :
-                ListTypes.VISIBILITY_SCROLL_DOWN;
+            const direction =
+                this.contentOffsetY < pageOffsetY ? ListTypes.VISIBILITY_SCROLL_UP : ListTypes.VISIBILITY_SCROLL_DOWN;
 
             this.contentOffsetY = pageOffsetY;
             if (
                 direction === ListTypes.VISIBILITY_SCROLL_UP &&
-                (contentHeight - pageOffsetY) < (this.state.postListHeight * SCROLL_UP_MULTIPLIER)
+                contentHeight - pageOffsetY < this.state.postListHeight * SCROLL_UP_MULTIPLIER
             ) {
                 this.props.onLoadMoreUp();
             }
@@ -209,20 +205,16 @@ export default class PostList extends PureComponent {
             // needs to be added to the index for the length check to be correct.
             const moreNewMessages = this.props.postIds.length === index + 2;
 
-            return (
-                <NewMessagesDivider
-                    index={index}
-                    theme={this.props.theme}
-                    moreMessages={moreNewMessages}
-                />
-            );
+            return (<NewMessagesDivider
+                index={index}
+                theme={this.props.theme}
+                moreMessages={moreNewMessages}
+                    />);
         } else if (PostListUtils.isDateLine(item)) {
-            return (
-                <DateHeader
-                    date={PostListUtils.getDateForDateLine(item)}
-                    index={index}
-                />
-            );
+            return (<DateHeader
+                date={PostListUtils.getDateForDateLine(item)}
+                index={index}
+                    />);
         }
 
         // Remember that the list is rendered with item 0 at the bottom so the "previous" post
@@ -246,12 +238,10 @@ export default class PostList extends PureComponent {
         };
 
         if (PostListUtils.isCombinedUserActivityPost(item)) {
-            return (
-                <CombinedUserActivityPost
-                    combinedId={item}
-                    {...postProps}
-                />
-            );
+            return (<CombinedUserActivityPost
+                combinedId={item}
+                {...postProps}
+                    />);
         }
 
         const postId = item;
@@ -271,12 +261,7 @@ export default class PostList extends PureComponent {
     };
 
     scrollToInitialIndexIfNeeded = (width, height) => {
-        if (
-            width > 0 &&
-            height > 0 &&
-            this.props.initialIndex > 0 &&
-            !this.hasDoneInitialScroll
-        ) {
+        if (width > 0 && height > 0 && this.props.initialIndex > 0 && !this.hasDoneInitialScroll) {
             this.flatListRef.current.scrollToIndex({
                 animated: false,
                 index: this.props.initialIndex,
@@ -315,12 +300,7 @@ export default class PostList extends PureComponent {
     };
 
     render() {
-        const {
-            channelId,
-            highlightPostId,
-            postIds,
-            refreshing,
-        } = this.props;
+        const {channelId, highlightPostId, postIds, refreshing} = this.props;
 
         const refreshControl = {refreshing};
 
@@ -331,27 +311,30 @@ export default class PostList extends PureComponent {
         const hasPostsKey = postIds.length ? 'true' : 'false';
 
         return (
-            <FlatList
-                key={`recyclerFor-${channelId}-${hasPostsKey}`}
-                ref={this.flatListRef}
-                contentContainerStyle={styles.postListContent}
-                data={postIds}
-                extraData={this.makeExtraData(channelId, highlightPostId, this.props.extraData)}
-                initialNumToRender={INITIAL_BATCH_TO_RENDER}
-                inverted={true}
-                keyExtractor={this.keyExtractor}
-                ListFooterComponent={this.props.renderFooter}
-                maintainVisibleContentPosition={SCROLL_POSITION_CONFIG}
-                maxToRenderPerBatch={INITIAL_BATCH_TO_RENDER + 1}
-                onContentSizeChange={this.handleContentSizeChange}
-                onLayout={this.handleLayout}
-                onScroll={this.handleScroll}
-                onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                removeClippedSubviews={true}
-                renderItem={this.renderItem}
-                scrollEventThrottle={60}
-                {...refreshControl}
-            />
+            <React.Fragment>
+                <FlatList
+                    key={`recyclerFor-${channelId}-${hasPostsKey}`}
+                    ref={this.flatListRef}
+                    contentContainerStyle={styles.postListContent}
+                    data={postIds}
+                    extraData={this.makeExtraData(channelId, highlightPostId, this.props.extraData)}
+                    initialNumToRender={INITIAL_BATCH_TO_RENDER}
+                    inverted={true}
+                    keyExtractor={this.keyExtractor}
+                    ListFooterComponent={this.props.renderFooter}
+                    maintainVisibleContentPosition={SCROLL_POSITION_CONFIG}
+                    maxToRenderPerBatch={INITIAL_BATCH_TO_RENDER + 1}
+                    onContentSizeChange={this.handleContentSizeChange}
+                    onLayout={this.handleLayout}
+                    onScroll={this.handleScroll}
+                    onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                    removeClippedSubviews={true}
+                    renderItem={this.renderItem}
+                    scrollEventThrottle={60}
+                    {...refreshControl}
+                />
+                <Watermark/>
+            </React.Fragment>
         );
     }
 }
