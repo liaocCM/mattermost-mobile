@@ -21,7 +21,6 @@ import ChannelItem from './channel_item';
 
 function makeMapStateToProps() {
     const getChannel = makeGetChannel();
-
     return (state, ownProps) => {
         const channel = ownProps.channel || getChannel(state, {id: ownProps.channelId});
         const member = getMyChannelMember(state, channel.id);

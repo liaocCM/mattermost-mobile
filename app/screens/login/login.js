@@ -376,8 +376,10 @@ export default class Login extends PureComponent {
                         enableOnAndroid={true}
                     >
                         <Image
-                            source={require('assets/images/logo.png')}
+                            style={{width: 150, height: 150}}
+                            source={require('assets/images/MesoLogo.png')}
                         />
+                        {/* need change img */}
                         <View>
                             <Text style={GlobalStyles.header}>
                                 {this.props.config.SiteName}

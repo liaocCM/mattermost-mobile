@@ -17,6 +17,7 @@ import FormattedText from 'app/components/formatted_text';
 import Post from 'app/components/post';
 import Reactions from 'app/components/reactions';
 import SafeAreaView from 'app/components/safe_area_view';
+import Watermark from 'app/components/watermark';
 import {emptyFunction} from 'app/utils/general';
 import {preventDoubleTap} from 'app/utils/tap';
 import {changeOpacity, makeStyleSheetFromTheme} from 'app/utils/theme';
@@ -244,6 +245,7 @@ export default class LongPost extends PureComponent {
                                 navigator={navigator}
                                 managedConfig={managedConfig}
                             />
+                            <Watermark longpost={true}/>
                         </ScrollView>
                         {footer}
                     </Animatable.View>

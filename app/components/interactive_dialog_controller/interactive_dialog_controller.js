@@ -42,8 +42,7 @@ export default class InteractiveDialogController extends PureComponent {
         }
 
         const theme = this.props.theme;
-        console.log(this.props);
-        
+
         this.props.navigator.showModal({
             backButtonTitle: '',
             screen: 'InteractiveDialog',

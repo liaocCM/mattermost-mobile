@@ -413,14 +413,14 @@ export default class SelectServer extends PureComponent {
             buttonText = (
                 <FormattedText
                     id='mobile.components.select_server_view.connecting'
-                    defaultMessage='Connecting...'
+                    defaultMessage='連線中...'
                 />
             );
         } else {
             buttonText = (
                 <FormattedText
                     id='mobile.components.select_server_view.connect'
-                    defaultMessage='Connect'
+                    defaultMessage='連線'
                 />
             );
         }
@@ -447,14 +447,15 @@ export default class SelectServer extends PureComponent {
                 <TouchableWithoutFeedback onPress={this.blur}>
                     <View style={[GlobalStyles.container, GlobalStyles.signupContainer]}>
                         <Image
-                            source={require('assets/images/logo.png')}
+                            style={{width: 150, height: 150}}
+                            source={require('assets/images/MesoLogo.png')}
                         />
-
+                        {/* need change img */}
                         <View>
                             <FormattedText
                                 style={[GlobalStyles.header, GlobalStyles.label]}
                                 id='mobile.components.select_server_view.enterServerUrl'
-                                defaultMessage='Enter Server URL'
+                                defaultMessage='輸入伺服器網址'
                             />
                         </View>
                         <TextInput

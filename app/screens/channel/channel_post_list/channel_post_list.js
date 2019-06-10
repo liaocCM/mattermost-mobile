@@ -166,7 +166,7 @@ export default class ChannelPostList extends PureComponent {
         return (<ChannelIntro
             channelId={this.props.channelId}
             navigator={this.props.navigator}
-                />);
+        />);
     };
 
     render() {
@@ -189,7 +189,7 @@ export default class ChannelPostList extends PureComponent {
             component = (<PostListRetry
                 retry={this.loadPostsRetry}
                 theme={theme}
-                         />);
+            />);
         } else {
             let lastIndex = -1;
             if (Platform.OS === 'android') {

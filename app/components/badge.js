@@ -17,6 +17,7 @@ export default class Badge extends PureComponent {
         extraPaddingHorizontal: 10,
         minHeight: 20,
         minWidth: 20,
+        docsCount: false,
     };
 
     static propTypes = {
@@ -27,6 +28,7 @@ export default class Badge extends PureComponent {
         minHeight: PropTypes.number,
         minWidth: PropTypes.number,
         onPress: PropTypes.func,
+        docsCount: PropTypes.bool,
     };
 
     constructor(props) {
@@ -116,7 +118,8 @@ export default class Badge extends PureComponent {
                         style={[styles.text, this.props.countStyle]}
                         onLayout={this.onLayout}
                     >
-                        {count.toString()}
+                        {/* {count.toString()} */}
+                        {this.props.docsCount ? `${this.props.count}` : count.toString()}
                     </Text>
                 </View>
             );

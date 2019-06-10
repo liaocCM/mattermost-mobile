@@ -70,6 +70,7 @@ export default class PostBody extends PureComponent {
         shouldRenderJumboEmoji: PropTypes.bool.isRequired,
         theme: PropTypes.object,
         location: PropTypes.string,
+        otherMessage: PropTypes.bool,
     };
 
     static defaultProps = {

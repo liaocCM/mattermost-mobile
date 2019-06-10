@@ -3,7 +3,7 @@
 
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList, StyleSheet, View} from 'react-native';
+import {FlatList, StyleSheet} from 'react-native';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
@@ -209,12 +209,12 @@ export default class PostList extends PureComponent {
                 index={index}
                 theme={this.props.theme}
                 moreMessages={moreNewMessages}
-                    />);
+            />);
         } else if (PostListUtils.isDateLine(item)) {
             return (<DateHeader
                 date={PostListUtils.getDateForDateLine(item)}
                 index={index}
-                    />);
+            />);
         }
 
         // Remember that the list is rendered with item 0 at the bottom so the "previous" post
@@ -241,7 +241,7 @@ export default class PostList extends PureComponent {
             return (<CombinedUserActivityPost
                 combinedId={item}
                 {...postProps}
-                    />);
+            />);
         }
 
         const postId = item;

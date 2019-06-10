@@ -18,6 +18,7 @@ import Badge from 'app/components/badge';
 import ChannelIcon from 'app/components/channel_icon';
 import {preventDoubleTap} from 'app/utils/tap';
 import {changeOpacity, makeStyleSheetFromTheme} from 'app/utils/theme';
+import {getToken, getCounts} from 'app/service/callserver';
 
 const {View: AnimatedView} = Animated;
 
@@ -85,8 +86,27 @@ export default class ChannelItem extends PureComponent {
     showChannelAsUnread = () => {
         return this.props.mentions > 0 || (this.props.unreadMsgs > 0 && this.props.showUnreadForMsgs);
     };
+    state = {
+        count: 0,
+    }
+    componentWillMount() {
+        const getter = getToken();
 
+        if (getter) {
+            getter.then((res) => {
+                const token = res.content.toke_list[0].token;
+                getCounts(token).then((innerRes) => {
+                    let counter = 0;
+                    innerRes.content.dataset.forEach((element) => {
+                        counter += element.functions[0].count;
+                    });
+                    this.setState({count: counter});
+                });
+            });
+        }
+    }
     render() {
+        // console.log('channel items : ',this.props)
         const {
             channelId,
             currentChannelId,
@@ -158,6 +178,19 @@ export default class ChannelItem extends PureComponent {
         }
 
         let badge;
+        let processingDocs;
+        if (displayName === 'docs') {
+            processingDocs = (
+                <Badge
+                    style={style.docsbadge}
+                    countStyle={style.docsmention}
+                    count={this.state.count}
+                    onPress={this.onPress}
+                    docsCount={true}
+                />
+            );
+        }
+
         if (mentions) {
             badge = (
                 <Badge
@@ -207,6 +240,7 @@ export default class ChannelItem extends PureComponent {
                             >
                                 {channelDisplayName}
                             </Text>
+                            {processingDocs}
                             {badge}
                         </View>
                     </View>
@@ -260,11 +294,26 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
             borderWidth: 1,
             padding: 3,
             position: 'relative',
-            right: 16,
+            right: 18,
+        },
+        docsbadge: {
+            backgroundColor: '#ffbc42', //theme.mentionBg,
+            borderColor: theme.sidebarHeaderBg,
+            borderRadius: 3,
+            borderWidth: 1,
+            padding: 3,
+            position: 'relative',
+            right: 18,
+        },
+        docsmention: {
+            color: theme.mentionColor,
+            fontSize: 10,
+            fontWeight: 'bold',
         },
         mention: {
             color: theme.mentionColor,
             fontSize: 10,
+            fontWeight: 'bold',
         },
         muted: {
             opacity: 0.5,
